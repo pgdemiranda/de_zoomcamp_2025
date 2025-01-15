@@ -1,0 +1,542 @@
+# 1. Docker and Terraform
+## 1.1.1 - Introduction to Google Cloud
+
+Google Cloud Platform (GCP) provides a wide range of services tailored to various needs, including compute, storage, big data, machine learning, and more. Below, we outline each service category with examples and its relevance to Data Engineering.
+
+---
+
+### Compute
+GCP’s compute services allow for scalable processing power, suitable for various workloads.
+
+**Examples:**
+- **Google Compute Engine**: Provides virtual machines for scalable processing tasks.
+- **Google Kubernetes Engine (GKE)**: Manages containerized applications in a cluster environment.
+- **Cloud Run**: Serverless computing for deploying and running applications without infrastructure management.
+
+**Relevance to Data Engineering:**
+- Running ETL pipelines or data transformation scripts.
+- Hosting data processing frameworks like Apache Spark.
+
+---
+
+### Management
+Management services ensure optimal monitoring, deployment, and organization of cloud resources.
+
+**Examples:**
+- **Cloud Deployment Manager**: Automates the creation and management of GCP resources.
+- **Cloud Console**: A unified interface to manage and monitor resources.
+- **Operations Suite (formerly Stackdriver)**: Tools for logging, monitoring, and diagnostics.
+
+**Relevance to Data Engineering:**
+- Monitoring data pipelines to ensure performance and reliability.
+- Automating infrastructure provisioning for data workflows.
+
+---
+
+### Networking
+Networking services provide connectivity and security for data communication.
+
+**Examples:**
+- **Cloud VPN**: Securely connects on-premises networks to GCP.
+- **Cloud Load Balancing**: Distributes traffic across multiple instances for reliability and performance.
+- **VPC (Virtual Private Cloud)**: Configures isolated networking environments.
+
+**Relevance to Data Engineering:**
+- Managing secure connections for data ingestion from external sources.
+- Ensuring high availability of data pipelines.
+
+---
+
+### Storage & Databases
+GCP offers robust storage and database options, ideal for storing structured and unstructured data.
+
+**Examples:**
+- **Cloud Storage**: Stores unstructured data, including logs and media files.
+- **BigQuery**: A serverless, scalable data warehouse for querying large datasets.
+- **Cloud SQL**: Fully-managed relational databases (e.g., MySQL, PostgreSQL).
+- **Firestore**: NoSQL database for real-time data applications.
+
+**Relevance to Data Engineering:**
+- Storing raw and processed data in scalable and secure formats.
+- Executing complex analytical queries on large datasets.
+
+---
+
+### Big Data
+Big Data services support the analysis and processing of massive datasets.
+
+**Examples:**
+- **BigQuery**: Enables SQL-based analytics on large datasets.
+- **Dataflow**: Processes real-time and batch data using Apache Beam.
+- **Dataproc**: Manages Apache Spark and Hadoop clusters for big data processing.
+
+**Relevance to Data Engineering:**
+- Building data pipelines for real-time and batch data processing.
+- Performing advanced analytics on large datasets.
+
+---
+
+### Identity & Security
+Identity and security services safeguard data and resources on GCP.
+
+**Examples:**
+- **Cloud IAM (Identity and Access Management)**: Manages permissions and access control.
+- **Cloud KMS (Key Management Service)**: Encrypts sensitive data using managed keys.
+- **Security Command Center**: Provides centralized security management.
+
+**Relevance to Data Engineering:**
+- Ensuring sensitive data in pipelines is encrypted and access-controlled.
+- Managing access to databases and storage resources.
+
+---
+
+### Machine Learning
+Machine learning services enable the development and deployment of predictive models.
+
+**Examples:**
+- **AI Platform**: Builds and deploys machine learning models.
+- **TensorFlow on GCP**: Trains machine learning models at scale.
+- **AutoML**: Creates custom machine learning models without extensive expertise.
+
+**Relevance to Data Engineering:**
+- Integrating predictive models into data pipelines for enhanced analytics.
+- Preprocessing and feature engineering for ML workflows.
+
+---
+
+### Navigation in GCP
+**Drop-down Menu:** Provides access to all GCP services categorized by type.
+**Search Menu:** Quickly locates specific services or features within GCP.
+
+By leveraging these GCP services, data engineers can build robust, scalable, and secure data solutions for diverse business needs.
+
+
+
+## 1.2.1 - Introduction to Docker
+
+**What is Docker? Why do we need it?**
+Docker is an open platform for developing, shipping, and running applications. It enables you to separate your applications from your infrastructure, allowing for faster software delivery. With Docker, infrastructure can be managed like applications. By leveraging Docker's methodologies for shipping, testing, and deploying code, the delay between writing and running code in production is significantly reduced.
+(Source: [Docker Overview](https://docs.docker.com/get-started/docker-overview/))
+
+**Data Pipeline**
+A data pipeline is a process service that ingests data and produces more processed data.
+
+---
+
+### Containers
+
+**What are Containers?**
+Containers are isolated processes for each of your app’s components. Each component—the frontend React app, the Python API engine, and the database—runs in its own isolated environment, completely separate from everything else on your machine.
+
+**Containers vs. Virtual Machines (VMs)**
+
+- **VMs**: Full operating systems with their own kernel, hardware drivers, programs, and applications. Spinning up a VM to isolate a single application involves significant overhead.
+- **Containers**: Isolated processes with only the files needed to run. Multiple containers share the same kernel, enabling more applications to run on less infrastructure.
+
+**Benefits of Containers**
+
+- **Self-contained**: Each container includes everything it needs to run, without relying on pre-installed dependencies on the host machine.
+- **Isolated**: Containers operate independently, with minimal influence on the host and other containers, enhancing application security.
+- **Independent**: Each container is managed separately. Deleting one container doesn’t affect others.
+- **Portable**: Containers can run anywhere. The same container can operate seamlessly on development machines, data centers, or in the cloud.
+  (Source: [Docker Concepts](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/))
+
+---
+
+### Why Should We Care About Docker?
+
+- **Reproducibility**: Ensures consistent behavior across environments.
+- **Local experiments and tests**: Streamlines development workflows.
+- **Integration tests (CI/CD)**: Facilitates continuous integration and delivery. Example: [GitHub CI/CD](https://github.com/resources/articles/devops/ci-cd).
+- **Cloud pipelines**: Running pipelines on AWS Batch, Kubernetes jobs, etc.
+- **Scalable frameworks**: Compatible with Spark, Serverless (AWS Lambda, Google Functions), and more.
+
+---
+
+### Running PostgreSQL Locally with Docker
+
+1. Create a directory for the project:
+   ```bash
+   mkdir 2_docker_sql
+   ```
+2. Run a test Docker image:
+   ```bash
+   docker run hello-world
+   ```
+3. Run an Ubuntu container interactively:
+   ```bash
+   docker run -it ubuntu bash
+   ```
+4. Run a Python container interactively:
+   ```bash
+   docker run -it python:3.9
+   ```
+5. Run Python with an alternative entry point:
+   ```bash
+   docker run -it --entrypoint=bash python:3.9
+   ```
+6. Inside the Python container:
+   ```bash
+   pip install pandas
+   python
+   >>> import pandas
+   >>> pandas.__version__
+   ```
+
+---
+
+### Automating with Dockerfile
+
+**Dockerfile Example:**
+
+```dockerfile
+FROM python:3.9
+
+RUN pip install pandas
+
+ENTRYPOINT ["bash"]
+```
+
+**Build and Run the Docker Image:**
+
+1. Build the image:
+
+   ```bash
+   docker build -t test:pandas .
+   ```
+
+   > Note: Don’t forget the period (.) at the end of the command.
+
+2. Run the container:
+
+   ```bash
+   docker run -it test:pandas
+   ```
+
+3. Test Python and Pandas within the container:
+
+   ```python
+   import pandas
+   pandas.__version__
+   ```
+
+---
+
+### Adding a Python Script to the Container
+
+**Python Script (pipeline.py):**
+
+```python
+import pandas as pd
+import sys
+
+print(sys.argv)
+day = sys.argv[1]
+print(f"Job finished successfully for day = {day}")
+```
+
+**Updated Dockerfile:**
+
+```dockerfile
+FROM python:3.9
+
+RUN pip install pandas
+
+WORKDIR /app
+
+COPY pipeline.py pipeline.py
+
+ENTRYPOINT ["python", "pipeline.py"]
+```
+
+**Build and Run the Updated Docker Image:**
+
+1. Build the image:
+   ```bash
+   docker build -t test:pandas .
+   ```
+2. Run the container with a specific argument (e.g., date):
+   ```bash
+   docker run -it test:pandas 2021-01-15
+   ```
+## 1.2.2 - Ingesting NY Taxi Data to Postgres
+
+**Purpose:**
+This lesson introduces the use of `pgcli`.
+
+The NYC taxi data format has changed from CSV to Parquet, requiring ingestion through a Jupyter notebook with Parquet handling. However, the CSV files were backed up and are available in the DataTalks repository.
+
+Example command to download the data:
+
+```bash
+wget https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz
+```
+
+---
+
+### Docker Setup for PostgreSQL
+
+To connect to the database, the following parameters were used. This won’t be necessary in future setups as everything will run together, but it’s included here for reference.
+
+**Command for Linux:**
+
+```bash
+docker run -it \
+   -e POSTGRES_USER="root" \
+   -e POSTGRES_PASSWORD="root" \
+   -e POSTGRES_DB="ny_taxi" \
+   -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
+   -p 5432:5432 \
+   postgres:13
+```
+
+**Note for Windows:**
+You’ll need to pass the volume with the global path.
+
+---
+
+### Connecting to PostgreSQL
+
+To connect to the database in another terminal tab, use:
+
+```bash
+pgcli -h localhost -p 5432 -u root -d ny_taxi
+```
+
+The password is `root`.
+
+---
+
+### Ingesting Data
+
+After ingesting the data using the Jupyter notebook (`upload-data.ipynb`), verify the data in the table by running SQL queries.
+
+### Testing Data
+
+The following terminal commands can be helpful:
+
+- Export the first 100 rows:
+  ```bash
+  head -n 100 yellow_tripdata_2011-01.csv > yellow_head.csv
+  ```
+- Count the number of lines:
+  ```bash
+  wc -l yellow_tripdata_2011-01.csv
+  ```
+
+---
+
+### Handling DateTime Columns
+
+In the notebook, two columns needed to be converted to `datetime` to ensure they were recognized as `TIMESTAMP` when generating the schema using DDL. 
+
+The schema was created using IO operations, while SQL operations were performed using `SQLAlchemy`. The goal was to generate a DDL compatible with PostgreSQL.
+
+---
+
+### Additional Notes
+
+- If `psycopg2` is not installed correctly, there is a separate notebook, `pg-test-connection.ipynb`, to test the connection with the database.
+
+---
+
+## 1.2.3 - Connecting pgAdmin and Postgres
+
+**Overview:**
+pgAdmin provides a more convenient way to create databases, interact with PostgreSQL, and manage data compared to `pgcli`. The official image of `pgadmin4` can be found on [DockerHub](https://hub.docker.com/r/dpage/pgadmin4/).
+
+**Running pgAdmin in Docker:**
+
+```bash
+sudo docker run -it \
+   -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+   -e PGADMIN_DEFAULT_PASSWORD="root" \
+   -p 8080:80 \
+   dpage/pgadmin4
+```
+
+This command sets up a new instance of `pgadmin4` running in Docker.
+
+---
+
+### Connecting pgAdmin to PostgreSQL
+
+To enable communication between the PostgreSQL database and `pgadmin4`, create a Docker network and connect the containers:
+
+1. Create a network:
+
+   ```bash
+   sudo docker network create pg-network
+   ```
+
+2. Run the PostgreSQL database container:
+
+   ```bash
+   sudo docker run -it \
+      -e POSTGRES_USER="root" \
+      -e POSTGRES_PASSWORD="root" \
+      -e POSTGRES_DB="ny_taxi" \
+      -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
+      -p 5432:5432 \
+      --network=pg-network \
+      --name pg-database \
+      postgres:13
+   ```
+
+3. Run the `pgadmin4` container:
+
+   ```bash
+   sudo docker run -it \
+      -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+      -e PGADMIN_DEFAULT_PASSWORD="root" \
+      -p 8080:80 \
+      --network=pg-network \
+      --name pgadmin \
+      dpage/pgadmin4
+   ```
+
+---
+
+### Accessing pgAdmin
+
+Open a browser and navigate to `localhost:8080`. Log in with the credentials:
+
+- Email: `admin@admin.com`
+- Password: `root`
+
+### Setting Up the Connection in pgAdmin
+
+In the pgAdmin interface, create a new server connection:
+   ```bash
+   **Server Name:** Docker localhost
+   **Database Name:** pg-database
+   **Port:** 5432
+   **Username:** root
+   **Password:** root
+   ```
+
+## 1.2.4 - Dockerizing the Ingestion Script
+
+**Overview:**
+This lesson focuses on creating a Dockerized pipeline for automating the ingestion of NYC taxi data using Python. While the process will be automated with Airflow later, this step demonstrates the manual approach.
+
+---
+
+### Key Steps in Dockerizing the Script
+
+#### 1. Using `argparse`
+The ingestion script (`data_ingestion.py`) uses the `argparse` library to handle command-line arguments.
+
+#### 2. Converting Jupyter Notebook to Python Script
+To convert the notebook to a Python script, use the following command:
+
+```bash
+jupyter nbconvert --to=script upload-data.ipynb
+```
+
+---
+
+### Dockerfile
+The following Dockerfile was created to define the ingestion environment:
+
+```dockerfile
+FROM python:3.9.1
+
+RUN apt-get update && apt-get install -y wget
+
+RUN pip install pandas sqlalchemy psycopg2 pyarrow
+
+WORKDIR /app
+
+COPY ingest_data.py ingest_data.py
+
+ENTRYPOINT ["python", "ingest_data.py"]
+```
+
+> **Note:** Anytime the Dockerfile is modified, rebuild the container to apply changes.
+
+---
+
+### Building the Docker Container
+After creating the Dockerfile, build the container:
+
+```bash
+docker build -t taxi_ingest:v001 .
+```
+
+---
+
+### Running the Ingestion Script
+Pass the required parameters to the ingestion script. Below is an example of running it locally:
+
+#### Local Execution
+```bash
+URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz"
+python ingest_data.py \
+   --user=root \
+   --password=root \
+   --host=localhost \
+   --port=5432 \
+   --db=ny_taxi \
+   --tb=ny_taxi_data \
+   --url=${URL}
+```
+
+#### Dockerized Execution
+URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz"
+
+Run the Docker container with the following command:
+
+```bash
+docker run -it \
+   --network=pg-network \
+   taxi_ingest:v001 \
+   --user=root \
+   --password=root \
+   --host=pg-database \
+   --port=5432 \
+   --db=ny_taxi \
+   --tb=ny_taxi_data \
+   --url=${URL}
+```
+
+## 1.2.5 - Running Postgres and pgAdmin with Docker-Compose
+
+**Overview:**
+This chapter was concise but incredibly insightful as it demonstrated the convenience and power of Docker Compose.
+
+---
+
+### Key Observations:
+1. If you are using a recent version of Python, the command `docker-compose` with a hyphen may not work. Instead, use `docker compose` without the hyphen.
+
+2. A `docker-compose.yaml` file was created to manage all container-related configurations.
+
+   - Each service is defined with its respective image, environment variables, volume (for persistence), and ports.
+
+3. To run Docker Compose, navigate to the directory containing the YAML file and authorize the commands with `sudo` if necessary.
+
+---
+
+### Commands:
+
+- To start the containers:
+  ```bash
+  docker compose up
+  ```
+
+- To start the containers in detached mode (release the terminal):
+  ```bash
+  docker compose up -d
+  ```
+
+- To stop and remove containers:
+  ```bash
+  docker compose down
+  ```
+
+- To verify which containers are running:
+  ```bash
+  docker ps
+  ```
+
