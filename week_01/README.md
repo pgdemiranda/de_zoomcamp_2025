@@ -540,3 +540,137 @@ This chapter was concise but incredibly insightful as it demonstrated the conven
   docker ps
   ```
 
+## 1.2.5 - SQL Refresher
+
+- **Objective:** This chapter provides a brief recap of basic SQL operations using preloaded tables in the database.  
+- **Prerequisite:** Ensure the data has been loaded. Use the following resources:  
+  - [docker-compose.yaml](./docker-compose.yaml)  
+  - [Dockerfile](./Dockerfile)  
+  - [upload-data.ipynb](./upload-data.ipynb)  
+
+#### Steps to Load Data  
+1. **Setup infrastructure using `docker-compose.yaml`:**  
+   Run:  
+   ```bash
+   docker compose up -d
+   ```  
+
+2. **Build and run the Docker image:**  
+   - Build the image:  
+     ```bash
+     sudo docker build -t taxi_ingest:v001 .
+     ```  
+   - Ingest data:  
+     ```bash
+     URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz"
+     python ingest_data.py \
+         --user=root \
+         --password=root \
+         --host=localhost \
+         --port=5432 \
+         --db=ny_taxi \
+         --tb=ny_taxi_data \
+         --url=${URL}
+     ```  
+   - Load zone data:  
+     Use the file:  
+     `https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv`  
+
+3. **Alternative method for step 2:** Use the `upload-data.ipynb` notebook (recommended, as it includes zone data).  
+
+#### SQL Operations Covered  
+
+- **Joining tables (implicit inner join):**  
+  ```sql
+  SELECT
+      tpep_pickup_datetime,
+      tpep_dropoff_datetime,
+      total_amount,
+      CONCAT(zpu."Borough", ' / ', zpu."Zone") AS "pickup_loc",
+      CONCAT(zdo."Borough", ' / ', zdo."Zone") AS "dropoff_loc"
+  FROM
+      yellow_taxi_data t,
+      zones zpu,
+      zones zdo
+  WHERE
+      t."PULocationID" = zpu."LocationID" AND
+      t."DOLocationID" = zdo."LocationID"
+  LIMIT 100;
+  ```
+
+- **Explicit inner join:**  
+  ```sql
+  SELECT
+      tpep_pickup_datetime,
+      tpep_dropoff_datetime,
+      total_amount,
+      CONCAT(zpu."Borough", ' / ', zpu."Zone") AS "pickup_loc",
+      CONCAT(zdo."Borough", ' / ', zdo."Zone") AS "dropoff_loc"
+  FROM
+      yellow_taxi_data t
+      JOIN zones zpu ON t."PULocationID" = zpu."LocationID"
+      JOIN zones zdo ON t."DOLocationID" = zdo."LocationID"
+  LIMIT 100;
+  ```
+
+- **Check for records with missing `LocationID`:**  
+  ```sql
+  SELECT
+      tpep_pickup_datetime,
+      tpep_dropoff_datetime,
+      total_amount,
+      "PULocationID",
+      "DOLocationID"
+  FROM
+      yellow_taxi_data t
+  WHERE
+      "PULocationID" IS NULL OR "DOLocationID" IS NULL;
+  ```
+
+- **Check for unmatched `LocationID` in `zones`:**  
+  ```sql
+  SELECT
+      tpep_pickup_datetime,
+      tpep_dropoff_datetime,
+      total_amount,
+      "PULocationID",
+      "DOLocationID"
+  FROM
+      yellow_taxi_data t
+  WHERE
+      "DOLocationID" NOT IN (
+      SELECT "LocationID" FROM zones
+      )
+  LIMIT 100;
+  ```
+
+- **Joins (Left, Right, Outer):**  
+  Example for `LEFT JOIN`:  
+  ```sql
+  SELECT
+      tpep_pickup_datetime,
+      tpep_dropoff_datetime,
+      total_amount,
+      "PULocationID",
+      "DOLocationID"
+  FROM
+      yellow_taxi_data t
+      LEFT JOIN zones zpu ON t."PULocationID" = zpu."LocationID"
+      LEFT JOIN zones zdo ON t."DOLocationID" = zdo."LocationID"
+  LIMIT 100;
+  ```
+
+- **Group by to calculate trips per day:**  
+  ```sql
+  SELECT
+      CAST(tpep_dropoff_datetime AS DATE) AS "day",
+      COUNT(1) AS "count",
+      MAX(total_amount),
+      MAX(passenger_count)
+  FROM
+      yellow_taxi_data t
+  GROUP BY
+      CAST(tpep_dropoff_datetime AS DATE)
+  ORDER BY "count" DESC;
+  ```
+
