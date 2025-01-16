@@ -674,3 +674,129 @@ This chapter was concise but incredibly insightful as it demonstrated the conven
   ORDER BY "count" DESC;
   ```
 
+## 1.3.1 - Terraform Primer
+
+This section serves as an introduction to Terraform, providing enough knowledge to become proficient, though it is not a comprehensive course.
+
+### Overview of Terraform
+
+**Definition**
+HashiCorp Terraform is an infrastructure-as-code (IaC) tool that allows you to define cloud and on-premises resources in human-readable configuration files. These files can be versioned, reused, and shared. Terraform offers a consistent workflow to provision and manage infrastructure throughout its lifecycle, covering both low-level components (e.g., compute, storage, and networking) and high-level components (e.g., DNS entries and SaaS features).
+
+> Reference: [HashiCorp Terraform Introduction](https://developer.hashicorp.com/terraform/intro)
+
+**Benefits of Using Terraform**
+- Simplifies infrastructure tracking
+- Facilitates easier collaboration
+- Enhances reproducibility
+- Ensures proper removal of resources
+
+**What Terraform Is Not**
+- Does not manage or update code on infrastructure
+- Does not provide the ability to modify immutable resources
+- Cannot manage resources not defined in your Terraform files
+
+### Core Concepts
+
+**Infrastructure as Code**
+Terraform enables you to define infrastructure using declarative configuration files, ensuring a codified and consistent approach to managing resources.
+
+**Providers**
+Providers are plugins that enable Terraform to manage and communicate with various services and platforms. Examples include:
+- AWS
+- Azure
+- Google Cloud Platform (GCP)
+- Kubernetes
+- VSphere
+- Alibaba Cloud
+- Oracle Cloud Infrastructure
+- Active Directory
+
+Explore a complete list of providers at: [Terraform Providers Registry](https://registry.terraform.io/browse/providers)
+
+### Key Commands
+
+1. **`terraform init`**
+   Initializes the Terraform working directory and downloads the necessary provider plugins.
+
+2. **`terraform plan`**
+   Previews the changes Terraform will apply to the infrastructure based on the configuration files.
+
+3. **`terraform apply`**
+   Executes the planned changes and provisions the resources defined in the Terraform files.
+
+4. **`terraform destroy`**
+   Destroys all resources defined in the Terraform files, ensuring a clean teardown of the infrastructure.
+
+### Summary
+Terraform is a powerful tool for managing infrastructure as code. By using providers, you can interface with various platforms to create, modify, and destroy resources efficiently. Its commands facilitate a clear workflow, making infrastructure management simpler and more reliable.
+
+### 1.3.2 - Terraform Basics
+
+#### Objective:
+The goal is to create and manage buckets and infrastructure using Terraform. This involves setting up a new project called `terraform-demo` and using Terraform to simplify resource creation and destruction.
+
+---
+
+#### Steps to Configure and Use Terraform
+
+**1. Set Up a Service Account:**
+- Navigate to the IAM section of your cloud provider.
+- Create a new service account named `terraform-runner`.
+- Assign the following roles to the service account:
+  - **Storage Admin**
+  - **BigQuery Admin**
+  - **Compute Admin** (optional, can be added later by editing the service account).
+
+**2. Generate and Manage Service Account Keys:**
+- Go to the Service Accounts section, locate `terraform-runner`, and click on the three dots.
+- Select **Manage Keys** and create a new JSON key.
+- Save this key to `terraform-demo/keys/my-creds.json`.
+
+**3. Prepare Your Environment:**
+- Install the Terraform extension in VS Code.
+- Search online for the Google Terraform provider documentation: [Google Terraform Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs).
+- Copy the provider configuration into your `main.tf` file.
+- Format the file by running `terraform fmt` in the terminal.
+
+**4. Configure Project Credentials:**
+- Obtain your `project-id` from the Cloud Console (Dashboard > Overview).
+- Pass credentials to Terraform in one of the following ways:
+  - **Hardcoded:** Add `credentials = "./keys/my-creds.json"` in the `provider "google"` block of `main.tf`.
+  - **Environment Variable:**
+    ```bash
+    export GOOGLE_CREDENTIALS='./keys/my-creds.json'
+    ```
+    Verify with:
+    ```bash
+    echo $GOOGLE_CREDENTIALS
+    ```
+
+**5. Initialize Terraform:**
+- Run `terraform init` in the terminal to initialize the provider.
+
+**6. Add a Resource:**
+- Search for the `google_storage_bucket` resource documentation: [Google Storage Bucket Resource](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket).
+- Add the resource configuration to `main.tf`.
+- Ensure bucket names are globally unique in GCP by appending the project name or adding a suffix (e.g., `terra-bucket`, `bucket-demo`).
+
+**7. Plan and Apply Changes:**
+- Run `terraform plan` to review changes.
+- Run `terraform apply` to create the resources.
+
+**8. Destroy Resources:**
+- Use `terraform destroy` to remove all resources defined in `main.tf`.
+
+**9. Update .gitignore:**
+- Before pushing your repository to a remote server, add a Terraform-specific `.gitignore` template to avoid exposing sensitive files like credentials.
+
+---
+
+#### Notes:
+- Use Terraform to manage infrastructure efficiently and ensure proper resource tracking.
+- Always validate configurations and review planned changes before applying.
+- Maintain security by excluding sensitive files from version control.
+
+### Useful Command
+- **`terraform fmt`**
+   Format the file to a better, more readable fit
