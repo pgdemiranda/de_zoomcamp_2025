@@ -800,3 +800,239 @@ The goal is to create and manage buckets and infrastructure using Terraform. Thi
 ### Useful Command
 - **`terraform fmt`**
    Format the file to a better, more readable fit
+
+## 1.3.3 - Terraform Variables
+
+This section focuses on modifying the `main.tf` file by introducing variables stored in a separate file, `variables.tf`.
+
+### Purpose
+Separating variables into a dedicated file offers the following benefits:
+- Keeps the `main.tf` file organized.
+- Facilitates easy modifications when needed.
+
+### BigQuery Dataset Example
+To demonstrate the use of variables, we will create a BigQuery Dataset.
+- Reference: [BigQuery Dataset Basic](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset.html).
+- Use `Ctrl + F` in the documentation to identify required fields.
+
+### Preliminary Steps
+1. **Enable the BigQuery API:** Ensure that the BigQuery API is enabled in the GCP console.
+2. **Clean Up Existing Infrastructure:** Destroy any existing Terraform-managed resources before proceeding.
+
+### Creating the `variables.tf` File
+- Define different variables in `variables.tf` to be used in `main.tf`. Variables should be called using `var.<variable_name>`.
+- Variables to define:
+  - **credentials**: Path to the JSON file with Google Cloud credentials.
+  - **project**: Name of the project.
+  - **region** and **location**: Both point to the same variable since `SOUTHAMERICA-EAST1` does not support multi-regions. For other regions, such as the US or Europe, you could use `US` or `EU`.
+  - **bq_dataset_name**: Name of the BigQuery dataset.
+  - **gcs_bucket_name**: Name of the GCS bucket to store data.
+  - **gcs_storage_class**: Configuration for the bucket.
+
+#### Notes:
+- When referencing the credentials location in variables, use the `file()` function to specify that it is a file.
+
+### Updating Credentials
+If you previously exported Google credentials using:
+```bash
+export GOOGLE_CREDENTIALS=./keys/my-creds.json
+```
+Remove the export with:
+```bash
+unset GOOGLE_CREDENTIALS
+```
+This ensures the credentials are now passed as a variable instead of an environment variable.
+
+### Best Practices
+- Always destroy the infrastructure when it is no longer needed to avoid consuming unnecessary resources.
+- Use `terraform destroy` to clean up resources created by Terraform.
+
+By implementing these changes, your Terraform configuration will be more flexible, maintainable, and aligned with best practices for managing infrastructure as code.
+
+## 1.4.1 Setting Up the Environment on Google Cloud (Cloud VM + SSH Access)
+
+### Overview
+Since this is the longest video of the first week and covers many topics discussed, it's worth providing a brief overview of our steps beforehand.
+
+1. Generate SSH Keys: Create and add an SSH key pair to GCP metadata for access.
+
+2. Create VM: Use GCP Console to create an Ubuntu VM (E2-standard-4, 30GB storage).
+
+3. SSH into VM: Connect to the VM using the SSH key (ssh -i ~/.ssh/gcp user@<external-ip>).
+
+4. Configure VM:
+
+   - Install Anaconda and Docker.
+   - Set up SSH config for easier access.
+   - Configure Docker to run without sudo.
+
+5. SSH with VS Code: Use the "Remote - SSH" extension to connect via the alias in the SSH config.
+
+6. Clone Repo & Run Docker Compose: Clone the repository and run Docker containers with docker-compose up -d.
+
+7. Install pgcli: Install pgcli and mycli for database access.
+
+8. Set Up Port Forwarding: Forward ports 5432 (PostgreSQL) and 8888 (Jupyter) using VS Code.
+
+9. Run Jupyter Notebook: Start Jupyter Notebook and access locally for analysis.
+
+10. Install Terraform: Download and configure Terraform, then run terraform init, terraform plan, and terraform apply.
+
+11. Shut Down VM: Stop the VM using the Console or sudo shutdown now.
+
+#### Generating SSH Keys
+- Referenced GCP documentation links:
+  - [Connecting to Instances with Advanced SSH](https://cloud.google.com/compute/docs/instances/connecting-advanced#provide-key)
+  - [Creating SSH Keys](https://cloud.google.com/compute/docs/connect/create-ssh-keys)
+  - [Adding SSH Keys](https://cloud.google.com/compute/docs/connect/add-ssh-keys)
+- Steps:
+  1. Navigate to `~/.ssh/` directory.
+  2. Generate a new SSH key using `ssh-keygen`, instructions here: https://cloud.google.com/compute/docs/connect/create-ssh-keys. For this setup, the username can be set as your preference with or without a password, but the key was named gcp.
+  3. Retrieve the generated public key using `cat gcp.pub`.
+  4. Add the public key to the GCP metadata under SSH keys in Compute Engine settings.
+
+#### Creating a Virtual Machine (VM)
+- Choose "Create Instance" in the GCP Console.
+- Configuration:
+  - Instance type: E2-standard-4
+  - Storage: 30 GB
+  - OS: Ubuntu
+- No additional changes were made to the default setup.
+
+#### SSH into the VM
+- From the `~/` directory, connect to the VM:
+  ```bash
+  ssh -i ~/.ssh/gcp user@<external-ip>
+  ```
+- Verify connection:
+  - Use `htop` to check system resources.
+  - Use `gcloud --version` to confirm gcloud setup.
+
+#### Configuring the VM and SSH Settings
+1. **Install Anaconda**:
+   - Download with `wget`.
+   - Run the installer using `bash <filename>`.
+   - After installation, activate with `source .bashrc`.
+2. **Set Up SSH Config File**:
+   - Create a `config` file in `~/.ssh/` with the following:
+     ```
+     Host <simple alias like de-zoomcamp>
+     HostName <public-ip>
+     User <user>
+     IdentityFile ~/.ssh/gcp
+     ```
+   - Logout using `Ctrl+D` and reconnect using:
+     ```bash
+     ssh <alias>
+     ```
+   - example:
+      ssh de-zoomcamp
+3. **Install Docker**:
+   - Update and install Docker:
+     ```bash
+     sudo apt-get update
+     sudo apt-get install docker.io
+     ```
+   - Install Docker Compose:
+     1. Locate the desired version on [Docker Compose GitHub releases](https://github.com/docker/compose).
+     2. Make directory & Download:
+        ```bash
+        mkdir bin
+        cd bin/
+        wget <docker-compose-link> -O ~/bin/docker-compose
+        chmod +x ~/bin/docker-compose
+        ```
+        for linux we are using this: https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64
+     3. Add `~/bin` to PATH in `.bashrc`:
+        ```bash
+        nano .bashrc
+        export PATH="${HOME}/bin:${PATH}"
+        source .bashrc
+        ```
+   - Confirm installation with `which docker-compose`.
+4. **Set Up Docker Without Sudo**:
+   - Follow the guide: [Docker Without Sudo](https://github.com/sindresorhus/guides/blob/main/docker-without-sudo.md).
+   -`sudo groupadd docker`
+   -`sudo gpasswd -a $USER docker`
+   - Logout and log back in to apply changes.
+   -`sudo service docker restart`
+
+#### SSH with VS Code
+- Install the "Remote - SSH" extension.
+- In VS Code, select "Connect to Host" and choose the alias from the `config` file.
+- Note: If the external IP changes, update the `HostName` in the `config` file.
+
+#### Cloning the Repository and Running Docker Compose
+1. Clone the Zoomcamp repository:
+   ```bash
+   git clone <repo-url>
+   ```
+2. Navigate to the `2_docker_sql` directory and run:
+   ```bash
+   docker-compose up -d
+   ```
+3. Verify running containers with `docker ps`.
+
+### Installing pgcli with conda
+1. Install with conda:
+   ```bash
+   conda install -c conda-forge pgcli
+   ```
+2. Install mycli with pip
+   ```bash
+   pip install -U mycli
+   ```
+
+#### Setting Up Port Forwarding
+- Use the VS Code "Ports" tab to forward ports:
+  - Port `5432` for PostgreSQL.
+  - Port `8888` for Jupyter Notebook.
+- Access services locally, e.g., pgAdmin on `localhost:8080` or Jupyter on `localhost:8888`.
+
+#### Running Jupyter Notebook
+1. Start Jupyter Notebook in the `2_docker_sql` directory:
+   ```bash
+   jupyter notebook
+   ```
+2. Access the notebook using the provided URL.
+3. Download required datasets using `wget` and proceed with analysis.
+4. When necessary, access pgcli with `pgcli -h localhost -U root -d ny_taxi` and analyze if the schema is inside with `\dt\`
+
+#### Installing and Configuring Terraform
+1. Download Terraform binaries:
+   - Visit the [Terraform Downloads page](https://www.terraform.io/downloads) and look for the binaries link.
+   - Download and unzip:
+     ```bash
+     cd bin/
+     wget <terraform-link>
+     sudo apt-get install unzip
+     unzip <filename>
+     ```
+2. Transfer credentials to the VM using SFTP:
+   ```bash
+   sftp de-zoomcamp
+   mkdir .gc
+   put my-creds.json .gc/my-creds.json
+   ```
+3. Configure Gcloud:
+   ```bash
+   export GOOGLE_APPLICATION_CREDENTIALS=~/.gc/ny-taxi.json
+   gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS
+   ```
+4. Initialize Terraform:
+   - Update variables in the cloned repository as needed.
+   - You can edit directly from the repo that was cloned, just update the variables.tf and that's it!
+   - Run:
+     ```bash
+     terraform init
+     terraform plan
+     terraform apply
+     ```
+
+#### Shutting Down the VM
+- Stop the machine using either:
+  - Console interface.
+  - Terminal command:
+    ```bash
+    sudo shutdown now
+    ```
