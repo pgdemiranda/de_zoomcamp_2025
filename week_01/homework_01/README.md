@@ -207,10 +207,10 @@ We need the name of the zone, not the ID.
     LIMIT 1;
     ```
 
-    Yorkville West
-    JFK Airport <-
-    East Harlem North
-    East Harlem South
+- Yorkville West
+- JFK Airport <-
+- East Harlem North
+- East Harlem South
 
 ## Terraform
 
