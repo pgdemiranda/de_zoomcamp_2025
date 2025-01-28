@@ -388,3 +388,5 @@ Para o flow 04_gcp_kv.yaml, ele foi sobre repassar as credenciais, o nome do buc
 
 Para o flow 05_gcp_setup.yaml, se todas as variáveis estiverem setadas no KV Store, esse flow apenas constrói toda a infraestrutura!
 
+
+
