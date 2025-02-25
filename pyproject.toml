@@ -10,8 +10,10 @@ python = "^3.12"
 pandas = "^2.2.3"
 sqlalchemy = "^2.0.37"
 psycopg2-binary = "^2.9.10"
-google-cloud-storage = "^3.0.0"
+google-cloud-storage = ">=2.4,<3.0"
 urllib3 = "^2.3.0"
+dbt-core = "^1.9.2"
+dbt-bigquery = "^1.9.1"
 
 
 [tool.poetry.group.dev.dependencies]
