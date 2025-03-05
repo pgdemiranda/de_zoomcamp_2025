@@ -45,3 +45,4 @@ terraform.rc
 *_SUCCESS
 *.parquet
 *.crc
+*.log
