@@ -2116,6 +2116,16 @@ files = [
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
+name = "pyflink"
+version = "1.0"
+description = "Flink Python API"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyflink-1.0-py3-none-any.whl", hash = "sha256:382dfa476a0bbdee2220639a0782aeafe41163748d077e57cb2206fbb4868b0d"},
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.1"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -2871,4 +2881,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "ffdacd50a8100685b569583cc19ab434034d628ba38a6b09d10217b7ed01637f"
+content-hash = "e2e4d18afd5a0e1145d0a5253fa89ecb8a90c728079962566a02d54de37af668"
